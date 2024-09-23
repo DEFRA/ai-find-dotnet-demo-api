@@ -1,4 +1,4 @@
-﻿using AiFindDotnetDemoApi.Example.Models;
+using AiFindDotnetDemoApi.Example.Models;
 using AiFindDotnetDemoApi.Example.Services;
 using FluentValidation;
 using FluentValidation.Results;

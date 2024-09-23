@@ -1,4 +1,4 @@
-﻿using AiFindDotnetDemoApi.Example.Models;
+using AiFindDotnetDemoApi.Example.Models;
 using FluentValidation;
 
 namespace AiFindDotnetDemoApi.Example.Validators;

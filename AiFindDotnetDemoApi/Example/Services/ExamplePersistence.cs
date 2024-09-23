@@ -1,4 +1,4 @@
-﻿using AiFindDotnetDemoApi.Example.Models;
+using AiFindDotnetDemoApi.Example.Models;
 using AiFindDotnetDemoApi.Utils.Mongo;
 using MongoDB.Driver;
 

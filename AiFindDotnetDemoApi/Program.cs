@@ -7,51 +7,52 @@ using AiFindDotnetDemoApi.Utils.Mongo;
 using FluentValidation;
 using Serilog;
 
-//-------- Configure the WebApplication builder------------------//
+namespace AiFindDotnetDemoApi;
 
-var builder = WebApplication.CreateBuilder(args);
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
 
-// Grab environment variables
-builder.Configuration.AddEnvironmentVariables();
+        builder.Configuration.AddEnvironmentVariables();
 
-// Serilog
-builder.Logging.ClearProviders();
-var logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.With<LogLevelMapper>()
-    .CreateLogger();
-builder.Logging.AddSerilog(logger);
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Configuration.AddUserSecrets<Program>();
+        }
 
-logger.Information("Starting application");
+        builder.Logging.ClearProviders();
 
-// Load certificates into Trust Store - Note must happen before Mongo and Http client connections 
-builder.Services.AddCustomTruststore(logger);
+        var logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(builder.Configuration)
+            .Enrich.With<LogLevelMapper>()
+            .CreateLogger();
 
-// Mongo
-builder.Services.AddSingleton<IMongoDbClientFactory>(_ =>
-    new MongoDbClientFactory(builder.Configuration.GetValue<string>("Mongo:DatabaseUri")!,
-        builder.Configuration.GetValue<string>("Mongo:DatabaseName")!));
+        builder.Logging.AddSerilog(logger);
 
-// our service
-builder.Services.AddSingleton<IExamplePersistence, ExamplePersistence>();
+        logger.Information("Starting application");
 
-// health checks
-builder.Services.AddHealthChecks();
+        builder.Services.AddCustomTruststore(logger);
 
-// http client
-builder.Services.AddHttpClient();
+        builder.Services.AddSingleton<IMongoDbClientFactory>(_ =>
+            new MongoDbClientFactory(builder.Configuration.GetValue<string>("Mongo:DatabaseUri")!,
+                builder.Configuration.GetValue<string>("Mongo:DatabaseName")!));
 
-// calls outside the platform should be done using the named 'proxy' http client.
-builder.Services.AddHttpProxyClient(logger);
+        builder.Services.AddSingleton<IExamplePersistence, ExamplePersistence>();
 
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+        builder.Services.AddHealthChecks();
+        builder.Services.AddHttpClient();
+        builder.Services.AddHttpProxyClient(logger);
+        builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-var app = builder.Build();
+        var app = builder.Build();
 
-app.UseRouting();
-app.MapHealthChecks("/health");
+        app.UseRouting();
+        app.MapHealthChecks("/health");
 
-// Example module, remove before deploying!
-app.UseExampleEndpoints();
+        app.UseExampleEndpoints();
 
-app.Run();
+        app.Run();
+    }
+}

@@ -12,14 +12,14 @@ public class MongoDbClientFactory : IMongoDbClientFactory
     {
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new ArgumentException("MongoDB connection string cannot be empty");
-       
+
         var settings = MongoClientSettings.FromConnectionString(connectionString);
         _client = new MongoClient(settings);
-        
+
         var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
         // convention must be registered before initialising collection
         ConventionRegistry.Register("CamelCase", camelCaseConvention, _ => true);
-        
+
         _mongoDatabase = _client.GetDatabase(databaseName);
     }
 
@@ -38,5 +38,5 @@ public class MongoDbClientFactory : IMongoDbClientFactory
     {
         return _client;
     }
-    
+
 }
