@@ -8,8 +8,11 @@ public class MongoDbClientFactory : IMongoDbClientFactory
     private readonly IMongoDatabase _mongoDatabase;
     private readonly IMongoClient _client;
 
-    public MongoDbClientFactory(string? connectionString, string databaseName)
+    public MongoDbClientFactory(IConfiguration configuration)
     {
+        var connectionString = configuration["Mongo:DatabaseUri"];
+        var databaseName = configuration["Mongo:DatabaseName"];
+
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new ArgumentException("MongoDB connection string cannot be empty");
 

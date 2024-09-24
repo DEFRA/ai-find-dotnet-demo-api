@@ -2,31 +2,15 @@ using AiFindDotnetDemoApi.Example.Models;
 using AiFindDotnetDemoApi.Utils.Mongo;
 using MongoDB.Driver;
 
-namespace AiFindDotnetDemoApi.Example.Services;
+namespace AiFindDotnetDemoApi.Example.Interfaces;
 
-public interface IExamplePersistence
+public class ExampleMongoService : MongoService<ExampleModel>, IExampleService
 {
-    public Task<bool> CreateAsync(ExampleModel example);
+    public ExampleMongoService(IMongoDbClientFactory connectionFactory, ILoggerFactory loggerFactory)
+        : base(connectionFactory, "example", loggerFactory)
+    {
+    }
 
-    public Task<ExampleModel?> GetByExampleName(string name);
-
-    public Task<IEnumerable<ExampleModel>> GetAllAsync();
-
-    public Task<IEnumerable<ExampleModel>> SearchByValueAsync(string searchTerm);
-
-    public Task<bool> UpdateAsync(ExampleModel example);
-
-    public Task<bool> DeleteAsync(string name);
-}
-
-/**
- * An example of how to persist data in MongoDB.
- * The base class `MongoService` provides access to the db collection as well as providing helpers to
- * ensure the indexes for this collection are created on startup.  
- */
-public class ExamplePersistence(IMongoDbClientFactory connectionFactory, ILoggerFactory loggerFactory)
-    : MongoService<ExampleModel>(connectionFactory, "example", loggerFactory), IExamplePersistence
-{
     public async Task<bool> CreateAsync(ExampleModel example)
     {
         try
@@ -61,11 +45,6 @@ public class ExamplePersistence(IMongoDbClientFactory connectionFactory, ILogger
         return result;
     }
 
-    /**
-     * Updates the value field for a given name and increments the counter.
-     * Rather than replacing the whole record we selectively $set and $inc fields while leaving others
-     * unchanged.
-     */
     public async Task<bool> UpdateAsync(ExampleModel example)
     {
         var filter = Builders<ExampleModel>.Filter.Eq(e => e.Name, example.Name);
@@ -83,11 +62,6 @@ public class ExamplePersistence(IMongoDbClientFactory connectionFactory, ILogger
         return result.DeletedCount > 0;
     }
 
-    /**
-     * Ensure indexes are created for this collection.
-     * In this example it creates a single index on the `name` field. The Unique flag is set preventing duplicate names
-     * being inserted.
-     */
     protected override List<CreateIndexModel<ExampleModel>> DefineIndexes(IndexKeysDefinitionBuilder<ExampleModel> builder)
     {
         var options = new CreateIndexOptions { Unique = true };

@@ -1,5 +1,5 @@
 using AiFindDotnetDemoApi.Example.Endpoints;
-using AiFindDotnetDemoApi.Example.Services;
+using AiFindDotnetDemoApi.Example.Interfaces;
 using AiFindDotnetDemoApi.Utils;
 using AiFindDotnetDemoApi.Utils.Http;
 using AiFindDotnetDemoApi.Utils.Logging;
@@ -17,11 +17,6 @@ public class Program
 
         builder.Configuration.AddEnvironmentVariables();
 
-        if (builder.Environment.IsDevelopment())
-        {
-            builder.Configuration.AddUserSecrets<Program>();
-        }
-
         builder.Logging.ClearProviders();
 
         var logger = new LoggerConfiguration()
@@ -35,11 +30,9 @@ public class Program
 
         builder.Services.AddCustomTruststore(logger);
 
-        builder.Services.AddSingleton<IMongoDbClientFactory>(_ =>
-            new MongoDbClientFactory(builder.Configuration.GetValue<string>("Mongo:DatabaseUri")!,
-                builder.Configuration.GetValue<string>("Mongo:DatabaseName")!));
+        builder.Services.AddSingleton<IMongoDbClientFactory, MongoDbClientFactory>();
 
-        builder.Services.AddSingleton<IExamplePersistence, ExamplePersistence>();
+        builder.Services.AddSingleton<IExampleService, ExampleMongoService>();
 
         builder.Services.AddHealthChecks();
         builder.Services.AddHttpClient();

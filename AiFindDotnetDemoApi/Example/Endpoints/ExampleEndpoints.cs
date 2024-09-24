@@ -1,5 +1,5 @@
+using AiFindDotnetDemoApi.Example.Interfaces;
 using AiFindDotnetDemoApi.Example.Models;
-using AiFindDotnetDemoApi.Example.Services;
 using FluentValidation;
 using FluentValidation.Results;
 
@@ -21,7 +21,7 @@ public static class ExampleEndpoints
     }
 
     private static async Task<IResult> Create(
-        ExampleModel example, IExamplePersistence examplePersistence, IValidator<ExampleModel> validator)
+        ExampleModel example, IExampleService examplePersistence, IValidator<ExampleModel> validator)
     {
         var validationResult = await validator.ValidateAsync(example);
         if (!validationResult.IsValid) return Results.BadRequest(validationResult.Errors);
@@ -37,7 +37,7 @@ public static class ExampleEndpoints
     }
 
     private static async Task<IResult> GetAll(
-        IExamplePersistence examplePersistence, string? searchTerm)
+        IExampleService examplePersistence, string? searchTerm)
     {
         if (searchTerm is not null && !string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -50,14 +50,14 @@ public static class ExampleEndpoints
     }
 
     private static async Task<IResult> GetByName(
-        string name, IExamplePersistence examplePersistence)
+        string name, IExampleService examplePersistence)
     {
         var example = await examplePersistence.GetByExampleName(name);
         return example is not null ? Results.Ok(example) : Results.NotFound();
     }
 
     private static async Task<IResult> Update(
-        string name, ExampleModel example, IExamplePersistence examplePersistence,
+        string name, ExampleModel example, IExampleService examplePersistence,
         IValidator<ExampleModel> validator)
     {
         example.Name = name;
@@ -69,7 +69,7 @@ public static class ExampleEndpoints
     }
 
     private static async Task<IResult> Delete(
-        string name, IExamplePersistence examplePersistence)
+        string name, IExampleService examplePersistence)
     {
         var deleted = await examplePersistence.DeleteAsync(name);
         return deleted ? Results.Ok() : Results.NotFound();
