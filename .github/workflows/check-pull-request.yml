@@ -18,11 +18,12 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-      - name: Test
+      - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: |
             8.0
+      - run: dotnet format --verify-no-changes
       - run: dotnet test
         
 #     - name: SonarCloud Scan
