@@ -1,18 +1,25 @@
 services:
   api:
-    image: ai-find-dotnet-demo-api-development
+    image: ai-find-dotnet-demo-api
     build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
+      target: build
     ports:
       - "5000:8085"
     networks:
       - cdp-tenant
     volumes:
-      - ./AiFindDotnetDemoApi:/home/dotnet/app/AiFindDotnetDemoApi
+      - ./AiFindDotnetDemoApi:/home/dotnet/src/AiFindDotnetDemoApi
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+    entrypoint:
+      - "dotnet"
+      - "watch"
+      - "--project"
+      - "/home/dotnet/src/AiFindDotnetDemoApi/AiFindDotnetDemoApi.csproj"
+      - "run"
+      - "--urls"
+      - "http://*:8085"
+      - "--non-interactive"
     depends_on:
       - mongodb
   

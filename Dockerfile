@@ -1,37 +1,35 @@
-﻿ARG PARENT_VERSION=1.7.0-dotnet8.0
-
-# Development
-FROM defradigital/dotnetcore-development:${PARENT_VERSION} AS development
-ARG PARENT_VERSION
-LABEL uk.gov.defra.ffc.parent-image=defradigital/dotnetcore-development:${PARENT_VERSION}
-
+﻿# Base dotnet image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-RUN mkdir -p /home/dotnet/src/AiFindDotnetDemoApi/
-WORKDIR /home/dotnet/src
-COPY --chown=dotnet:dotnet ./AiFindDotnetDemoApi/*.csproj ./AiFindDotnetDemoApi/
-RUN dotnet restore "./AiFindDotnetDemoApi/AiFindDotnetDemoApi.csproj"
+# Add curl to template.
+# CDP PLATFORM HEALTHCHECK REQUIREMENT
+RUN apt update && \
+    apt install curl -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-COPY --chown=dotnet:dotnet ./AiFindDotnetDemoApi/ ./AiFindDotnetDemoApi/
+# Build stage image
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
 
-RUN chown -R dotnet:dotnet /home/dotnet
+COPY . .
+WORKDIR "/src"
 
-WORKDIR /home/dotnet/src/AiFindDotnetDemoApi
-RUN dotnet publish -c Release -o /home/dotnet/out
+FROM build AS publish
+# unit test and code coverage
+RUN dotnet test AiFindDotnetDemoApi.Test
 
-ARG PORT=8085
-ENV PORT ${PORT}
-EXPOSE ${PORT}
-ENTRYPOINT dotnet watch --project AiFindDotnetDemoApi.csproj run --urls "http://*:${PORT}" --non-interactive
+RUN dotnet publish AiFindDotnetDemoApi -c Release -o /app/publish /p:UseAppHost=false
 
-FROM defradigital/dotnetcore:${PARENT_VERSION} AS production
+
 ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
-ARG PARENT_VERSION
-LABEL uk.gov.defra.ffc.parent-image=defradigital/dotnetcore:${PARENT_VERSION}
-COPY --from=development /home/dotnet/out/ ./
-ARG PORT=8085
-ENV ASPNETCORE_URLS http://*:${PORT}
-EXPOSE ${PORT}
 
+# Final production image
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+EXPOSE 8085
 ENTRYPOINT ["dotnet", "AiFindDotnetDemoApi.dll"]
