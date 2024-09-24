@@ -8,7 +8,7 @@ LABEL uk.gov.defra.ffc.parent-image=defradigital/dotnetcore-development:${PARENT
 EXPOSE 80
 EXPOSE 443
 
-RUN mkdir -p /home/dotnet/src/AiFindDotnetDemoApi/
+RUN mkdir -p /home/dotnet/app/AiFindDotnetDemoApi/
 WORKDIR /home/dotnet/app
 COPY --chown=dotnet:dotnet ./AiFindDotnetDemoApi/*.csproj ./AiFindDotnetDemoApi/
 RUN dotnet restore "./AiFindDotnetDemoApi/AiFindDotnetDemoApi.csproj"
