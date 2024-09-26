@@ -1,5 +1,3 @@
-using AiFindDotnetDemoApi.Example.Endpoints;
-using AiFindDotnetDemoApi.Example.Interfaces;
 using AiFindDotnetDemoApi.Utils;
 using AiFindDotnetDemoApi.Utils.Http;
 using AiFindDotnetDemoApi.Utils.Logging;
@@ -32,8 +30,6 @@ public class Program
 
         builder.Services.AddSingleton<IMongoDbClientFactory, MongoDbClientFactory>();
 
-        builder.Services.AddSingleton<IExampleService, ExampleMongoService>();
-
         builder.Services.AddHealthChecks();
         builder.Services.AddHttpClient();
         builder.Services.AddHttpProxyClient(logger);
@@ -43,8 +39,6 @@ public class Program
 
         app.UseRouting();
         app.MapHealthChecks("/health");
-
-        app.UseExampleEndpoints();
 
         app.Run();
     }
