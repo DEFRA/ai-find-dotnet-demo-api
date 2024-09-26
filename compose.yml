@@ -1,0 +1,40 @@
+services:
+  api:
+    image: ai-find-dotnet-demo-api
+    build:
+      target: build
+    ports:
+      - "5000:8085"
+    networks:
+      - cdp-tenant
+    volumes:
+      - ./AiFindDotnetDemoApi:/home/dotnet/src/AiFindDotnetDemoApi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    entrypoint:
+      - "dotnet"
+      - "watch"
+      - "--project"
+      - "/home/dotnet/src/AiFindDotnetDemoApi/AiFindDotnetDemoApi.csproj"
+      - "run"
+      - "--urls"
+      - "http://*:8085"
+      - "--non-interactive"
+    depends_on:
+      - mongodb
+  
+  mongodb:
+    image: mongo:6.0.13
+    ports:
+      - "27017:27017"
+    networks:
+      - cdp-tenant
+    volumes:
+      - mongodb:/data
+
+volumes:
+  mongodb:
+
+networks:
+  cdp-tenant:
+    driver: bridge

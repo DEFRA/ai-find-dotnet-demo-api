@@ -18,10 +18,10 @@ WORKDIR /src
 COPY . .
 WORKDIR "/src"
 
+FROM build AS publish
 # unit test and code coverage
 RUN dotnet test AiFindDotnetDemoApi.Test
 
-FROM build AS publish
 RUN dotnet publish AiFindDotnetDemoApi -c Release -o /app/publish /p:UseAppHost=false
 
 

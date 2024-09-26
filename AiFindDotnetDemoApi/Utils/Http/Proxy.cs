@@ -7,14 +7,14 @@ public static class Proxy
 {
     public const string ProxyClient = "proxy";
 
-    /**
-     * A preconfigured HTTP Client that uses the Platform's outbound proxy.
-     * 
-     * Usage:
-     *  1. inject an `IHttpClientFactory` into your class.
-     *  2. Use the IHttpClientFactory to create a named instance of HttpClient:
-     *     `clientFactory.CreateClient(Proxy.ProxyClient);`
-     */
+    /// <summary>
+    /// Add a preconfigured HTTP Client that uses the Platform's outbound proxy.
+    /// 
+    /// Usage:
+    ///     1. inject an `IHttpClientFactory` into your class.
+    ///     2. Use the IHttpClientFactory to create a named instance of HttpClient:
+    ///         `clientFactory.CreateClient(Proxy.ProxyClient);`
+    /// </summary>
     public static void AddHttpProxyClient(this IServiceCollection services, Logger logger)
     {
         services.AddHttpClient(ProxyClient).ConfigurePrimaryHttpMessageHandler(() =>
@@ -33,7 +33,7 @@ public static class Proxy
                 if (credentials != null)
                 {
                     logger.Debug("Setting proxy credentials");
-                    proxy.Credentials = credentials;    
+                    proxy.Credentials = credentials;
                 }
 
                 // Remove credentials from URI to so they don't get logged.
@@ -45,10 +45,10 @@ public static class Proxy
             {
                 logger.Warning("CDP_HTTP_PROXY is NOT set, proxy client will be disabled");
             }
-            return new HttpClientHandler { Proxy = proxy, UseProxy = proxyUri != null};
+            return new HttpClientHandler { Proxy = proxy, UseProxy = proxyUri != null };
         });
     }
-    
+
     private static NetworkCredential? GetCredentialsFromUri(UriBuilder uri)
     {
         var username = uri.UserName;
@@ -58,4 +58,3 @@ public static class Proxy
     }
 
 }
-

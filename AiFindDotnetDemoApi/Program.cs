@@ -1,5 +1,3 @@
-using AiFindDotnetDemoApi.Example.Endpoints;
-using AiFindDotnetDemoApi.Example.Services;
 using AiFindDotnetDemoApi.Utils;
 using AiFindDotnetDemoApi.Utils.Http;
 using AiFindDotnetDemoApi.Utils.Logging;
@@ -7,51 +5,41 @@ using AiFindDotnetDemoApi.Utils.Mongo;
 using FluentValidation;
 using Serilog;
 
-//-------- Configure the WebApplication builder------------------//
+namespace AiFindDotnetDemoApi;
 
-var builder = WebApplication.CreateBuilder(args);
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
 
-// Grab environment variables
-builder.Configuration.AddEnvironmentVariables();
+        builder.Configuration.AddEnvironmentVariables();
 
-// Serilog
-builder.Logging.ClearProviders();
-var logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.With<LogLevelMapper>()
-    .CreateLogger();
-builder.Logging.AddSerilog(logger);
+        builder.Logging.ClearProviders();
 
-logger.Information("Starting application");
+        var logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(builder.Configuration)
+            .Enrich.With<LogLevelMapper>()
+            .CreateLogger();
 
-// Load certificates into Trust Store - Note must happen before Mongo and Http client connections 
-builder.Services.AddCustomTruststore(logger);
+        builder.Logging.AddSerilog(logger);
 
-// Mongo
-builder.Services.AddSingleton<IMongoDbClientFactory>(_ =>
-    new MongoDbClientFactory(builder.Configuration.GetValue<string>("Mongo:DatabaseUri")!,
-        builder.Configuration.GetValue<string>("Mongo:DatabaseName")!));
+        logger.Information("Starting application");
 
-// our service
-builder.Services.AddSingleton<IExamplePersistence, ExamplePersistence>();
+        builder.Services.AddCustomTruststore(logger);
 
-// health checks
-builder.Services.AddHealthChecks();
+        builder.Services.AddSingleton<IMongoDbClientFactory, MongoDbClientFactory>();
 
-// http client
-builder.Services.AddHttpClient();
+        builder.Services.AddHealthChecks();
+        builder.Services.AddHttpClient();
+        builder.Services.AddHttpProxyClient(logger);
+        builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// calls outside the platform should be done using the named 'proxy' http client.
-builder.Services.AddHttpProxyClient(logger);
+        var app = builder.Build();
 
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+        app.UseRouting();
+        app.MapHealthChecks("/health");
 
-var app = builder.Build();
-
-app.UseRouting();
-app.MapHealthChecks("/health");
-
-// Example module, remove before deploying!
-app.UseExampleEndpoints();
-
-app.Run();
+        app.Run();
+    }
+}
